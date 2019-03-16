@@ -22,9 +22,9 @@ def main():
         index_page = 1
         brand = brand['href'].rsplit('-', 1)
         brand_name = brand[0]
-        brand_number = brand[1].split('.')[0]
+        brand_id = brand[1].split('.')[0]
         print(f"Brand : {brand_name}")
-        url_brand_base = f"https://www.gsmarena.com/{brand_name}-f-{brand_number}-0"
+        url_brand_base = f"https://www.gsmarena.com/{brand_name}-f-{brand_id}-0"
 
         while(True):
             url_brand_page = f"{url_brand_base}-p{index_page}.php"
@@ -91,7 +91,7 @@ def main():
                     else:
                         logger.error(f"{name} : td class=nfo not found")
             else:
-                logger.error(f"{name} : td class=nfo not found")
+                logger.error(f"{url_brand_page} : td class=section-body not found")
                 break
 
     # logger.debug(smartphones_dict)
