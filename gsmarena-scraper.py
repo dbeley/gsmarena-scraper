@@ -42,27 +42,26 @@ def main():
                     img_smartphone = smartphone.find('img')['src']
                     url_smartphone = f"https://www.gsmarena.com/{href_smartphone}"
                     logger.debug(f"url_smartphone : {url_smartphone}")
-                    smartphone_dict["Lien"] = url_smartphone
+                    smartphone_dict["Link"] = url_smartphone
                     smartphone_dict["Image"] = img_smartphone
                     html_doc_smartphone = requests.get(url_smartphone).content
                     soup_smartphone = BeautifulSoup(html_doc_smartphone, features='lxml')
                     name = str(soup_smartphone.find('h1').find_all(text=True, recursive=False)[0])
                     print(f"Model : {name}")
-                    smartphone_dict["Nom"] = name
+                    smartphone_dict["Name"] = name
 
                     if soup_smartphone.select('td', {'class': 'nfo'}):
                         smartphone_dict["Fans"] = soup_smartphone.find('li', {'class': 'help-fans'}).find('strong').find(text=True)
-                        smartphone_dict["Popularité"] = soup_smartphone.find('li', {'class': 'help-popularity'}).find_all(text=True)[2]
+                        smartphone_dict["Popularity"] = soup_smartphone.find('li', {'class': 'help-popularity'}).find_all(text=True)[2]
                         smartphone_dict["Hits"] = soup_smartphone.find('li', {'class': 'help-popularity'}).find_all(text=True)[4]
-                        # smartphone_dict["Hits"] = soup_smartphone.find('li', {'class': 'help-popularity'}).find('span').find(text=True)
                         ecran = soup_smartphone.find('li', {'class': 'help-display'}).find_all(text=True)
                         if ecran:
                             try:
-                                logger.debug(f"Écran : {ecran}")
-                                smartphone_dict["Taille_écran"] = ecran[2]
-                                smartphone_dict["Définition_écran"] = ecran[3]
+                                logger.debug(f"Screen : {ecran}")
+                                smartphone_dict["Screen_size"] = ecran[2]
+                                smartphone_dict["Scree_resolution"] = ecran[3]
                             except Exception as e:
-                                logger.debug(f"ecran : {e}")
+                                logger.debug(f"Screen : {e}")
                         ram = soup_smartphone.find('li', {'class': 'help-expansion'}).find_all(text=True)
                         if ram:
                             try:
@@ -70,14 +69,14 @@ def main():
                                 smartphone_dict["RAM"] = ' '.join([ram[i] for i in [3, 4]])
                                 smartphone_dict["SOC"] = ram[-1]
                             except Exception as e:
-                                logger.debug(f"ram : {e}")
+                                logger.debug(f"RAM : {e}")
                         batterie = soup_smartphone.find('li', {'class': 'help-battery'}).find_all(text=True)
                         if batterie:
                             try:
-                                logger.debug(f"Batterie: {batterie}")
-                                smartphone_dict["Batterie"] = ' '.join([batterie[i] for i in [3, 4]])
+                                logger.debug(f"Battery : {batterie}")
+                                smartphone_dict["Battery"] = ' '.join([batterie[i] for i in [3, 4]])
                             except Exception as e:
-                                logger.debug(f"batterie : {e}")
+                                logger.debug(f"Battery : {e}")
                         for spec in soup_smartphone.find_all('td', {'class': 'nfo'}):
                             try:
                                 type = str(spec['data-spec'])
@@ -102,7 +101,7 @@ def main():
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(description='Scraper revuedepresse.')
+    parser = argparse.ArgumentParser(description='Scraper gsmarena.')
     parser.add_argument('--debug', help="Display debugging information", action="store_const", dest="loglevel", const=logging.DEBUG, default=logging.INFO)
     args = parser.parse_args()
 

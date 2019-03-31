@@ -10,11 +10,11 @@ This script extract the mobile specs from all the phones available in gsmarena.c
 ## Usage
 
 ```
-python scrap_gsmarena.py
+python gsmarena_scraper.py
 ```
 
 ## Help
 
 ```
-python scrap_gsmarena.py -h
+python gsmarena_scraper.py -h
 ```
