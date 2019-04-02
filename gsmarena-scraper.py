@@ -31,7 +31,7 @@ def main():
 
         while(True):
             url_brand_page = f"{url_brand_base}-p{index_page}.php"
-            # logger.debug(url_brand_page)
+            logger.debug(url_brand_page)
             index_page = index_page + 1
             html_doc_page = requests.get(url_brand_page).content
             soup_page = BeautifulSoup(html_doc_page, features='lxml')
@@ -62,32 +62,32 @@ def main():
                         ecran = soup_smartphone.find('li', {'class': 'help-display'}).find_all(text=True)
                         if ecran:
                             try:
-                                # logger.debug(f"Screen : {ecran}")
+                                logger.debug(f"Screen : {ecran}")
                                 smartphone_dict["Screen_size"] = str(ecran[2])
                                 smartphone_dict["Scree_resolution"] = str(ecran[3])
                             except Exception as e:
-                                # logger.debug(f"Screen : {e}")
+                                logger.debug(f"Screen : {e}")
                         ram = soup_smartphone.find('li', {'class': 'help-expansion'}).find_all(text=True)
                         if ram:
                             try:
-                                # logger.debug(f"RAM : {ram}")
+                                logger.debug(f"RAM : {ram}")
                                 smartphone_dict["RAM"] = ' '.join([ram[i] for i in [3, 4]])
                                 smartphone_dict["SOC"] = str(ram[-1])
                             except Exception as e:
-                                # logger.debug(f"RAM : {e}")
+                                logger.debug(f"RAM : {e}")
                         batterie = soup_smartphone.find('li', {'class': 'help-battery'}).find_all(text=True)
                         if batterie:
                             try:
-                                # logger.debug(f"Battery : {batterie}")
+                                logger.debug(f"Battery : {batterie}")
                                 smartphone_dict["Battery"] = ' '.join([batterie[i] for i in [3, 4]])
                             except Exception as e:
-                                # logger.debug(f"Battery : {e}")
+                                logger.debug(f"Battery : {e}")
                         for spec in soup_smartphone.find_all('td', {'class': 'nfo'}):
                             try:
                                 type = str(spec['data-spec'])
                                 value = ''.join(spec.find_all(text=True, recursive=False))
                                 smartphone_dict[type] = value
-                                # logger.debug(f"{type} : {value}")
+                                logger.debug(f"{type} : {value}")
                             except Exception:
                                 pass
                         smartphones_dict[index_dict] = smartphone_dict
