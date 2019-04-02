@@ -39,27 +39,40 @@ names(df)
 
 ## Tableaux
 
+# 50 avec le moins de hits
 df %>%
   arrange((Hits)) %>%
   head(50) %>%
-  select(c(Marque, Nom, Année, Mois, Hits))
+  select(c(Nom, Année, Hits, Fans))
 
+# 50 avec le plus de Hits
 df %>%
   arrange(desc(Hits)) %>%
   head(50) %>%
-  select(c(Marque, Nom, Année, Mois, Hits, Fans))
+  select(c(Nom, Année, Hits, Fans))
 
+df %>%
+  filter(Année %in% 1990:2010) %>%
+  arrange(desc(Hits)) %>%
+  head(50) %>%
+  select(c(Nom, Année, Hits, Fans))
+# 50 avec le plus de fans
 df %>%
   arrange(desc(Fans)) %>%
   head(50) %>%
-  select(c(Marque, Nom, Année, Mois, Hits, Fans)) %>%
-  View
+  select(c(Nom, Année, Hits, Fans))
 
+df %>%
+  filter(Année %in% 1990:2010) %>%
+  arrange(desc(Fans)) %>%
+  head(50) %>%
+  select(c(Nom, Année, Hits, Fans))
+
+# 50 avec le plus grand écran
 df %>%
   arrange(desc(Taille_écran)) %>%
   head(50) %>%
-  select(c(Marque, Nom, Année, Mois, Hits, Taille_écran)) %>%
-  View
+  select(c(Nom, Année, Hits, Fans))
 
 df %>%
   filter(gprstext == "No") %>%
@@ -67,6 +80,12 @@ df %>%
   #head(50) %>%
   select(c(Marque, Nom, Année, Mois, Hits, Taille_écran)) %>%
   View
+
+df %>%
+  group_by(chipset) %>%
+  summarise(année = mean(as.numeric(Année)),
+            count = n()) %>%
+  arrange(desc(count))
 
 ## Graphiques
 
@@ -118,5 +137,41 @@ df %>%
   geom_smooth(color = "gray20") +
   scale_color_viridis(discrete = TRUE) +
   labs(title = "", caption = "")
+
+
+df %>%
+  filter(Année %in% 1990:2019) %>%
+  ggplot(aes(Année, Batterie)) +
+  geom_boxplot() +
+  geom_smooth(color = "gray20") +
+  scale_color_viridis(discrete = TRUE) +
+  labs(title = "", caption = "")
+
+
+df %>%
+  filter(Année %in% 1990:2019) %>%
+  ggplot(aes(Année, Ratio)) +
+  geom_boxplot() +
+  geom_smooth(color = "gray20") +
+  scale_color_viridis(discrete = TRUE) +
+  labs(title = "", caption = "")
+
+df %>%
+  filter(Année %in% 1990:2019) %>%
+  ggplot(aes(Année, Hits)) +
+  geom_boxplot() +
+  geom_smooth(color = "gray20") +
+  scale_color_viridis(discrete = TRUE) +
+  labs(title = "", caption = "")
+
+df %>%
+  filter(Année %in% 1990:2019) %>%
+  ggplot(aes(Année, Fans)) +
+  geom_boxplot() +
+  geom_smooth(color = "gray20") +
+  scale_color_viridis(discrete = TRUE) +
+  labs(title = "", caption = "")
+
+names(df)
 
 write_delim(df, "smartphones_cleaned.csv", delim=";")
