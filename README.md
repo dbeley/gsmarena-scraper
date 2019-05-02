@@ -7,14 +7,20 @@ This script extract the mobile specs from all the phones available in gsmarena.c
 - pandas
 - beautifulsoup
 
+## Installation
+
+```
+pipenv install
+```
+
 ## Usage
 
 ```
-python gsmarena_scraper.py
+pipenv run python gsmarena_scraper.py
 ```
 
 ## Help
 
 ```
-python gsmarena_scraper.py -h
+pipenv run python gsmarena_scraper.py -h
 ```
