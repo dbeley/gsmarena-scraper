@@ -2,8 +2,9 @@ import time
 import logging
 import argparse
 import requests
-from bs4 import BeautifulSoup
 import pandas as pd
+from bs4 import BeautifulSoup
+from pathlib import Path
 
 
 logger = logging.getLogger()
@@ -46,7 +47,7 @@ def main():
                     href_smartphone = str(smartphone['href'])
                     img_smartphone = str(smartphone.find('img')['src'])
                     url_smartphone = f"https://www.gsmarena.com/{href_smartphone}"
-                    logger.debug(f"url_smartphone : {url_smartphone}")
+                    logger.debug("url_smartphone : %s", url_smartphone)
                     smartphone_dict["Link"] = url_smartphone
                     smartphone_dict["Image"] = img_smartphone
                     html_doc_smartphone = requests.get(url_smartphone).content
@@ -62,47 +63,48 @@ def main():
                         ecran = soup_smartphone.find('li', {'class': 'help-display'}).find_all(text=True)
                         if ecran:
                             try:
-                                logger.debug(f"Screen : {ecran}")
+                                logger.debug("Screen : %s", ecran)
                                 smartphone_dict["Screen_size"] = str(ecran[2])
                                 smartphone_dict["Scree_resolution"] = str(ecran[3])
                             except Exception as e:
-                                logger.debug(f"Screen : {e}")
+                                logger.debug("Screen : %s", e)
                         ram = soup_smartphone.find('li', {'class': 'help-expansion'}).find_all(text=True)
                         if ram:
                             try:
-                                logger.debug(f"RAM : {ram}")
+                                logger.debug("RAM : %s", ram)
                                 smartphone_dict["RAM"] = ' '.join([ram[i] for i in [3, 4]])
                                 smartphone_dict["SOC"] = str(ram[-1])
                             except Exception as e:
-                                logger.debug(f"RAM : {e}")
+                                logger.debug(f"RAM : %s", e)
                         batterie = soup_smartphone.find('li', {'class': 'help-battery'}).find_all(text=True)
                         if batterie:
                             try:
-                                logger.debug(f"Battery : {batterie}")
+                                logger.debug("Battery : %s", batterie)
                                 smartphone_dict["Battery"] = ' '.join([batterie[i] for i in [3, 4]])
                             except Exception as e:
-                                logger.debug(f"Battery : {e}")
+                                logger.debug("Battery : %s", e)
                         for spec in soup_smartphone.find_all('td', {'class': 'nfo'}):
                             try:
                                 type = str(spec['data-spec'])
                                 value = ''.join(spec.find_all(text=True, recursive=False))
                                 smartphone_dict[type] = value
-                                logger.debug(f"{type} : {value}")
+                                logger.debug("%s : %s", type, value)
                             except Exception:
                                 pass
                         smartphones_dict[index_dict] = smartphone_dict
                         index_dict = index_dict + 1
                     else:
-                        logger.error(f"{name} : td class=nfo not found")
+                        logger.error("%s : td class=nfo not found", name)
                     soup_smartphone.decompose()
             else:
                 soup_page.decompose()
-                logger.error(f"{url_brand_page} : td class=section-body not found")
+                logger.error("%s : td class=section-body not found", url_brand_page)
                 break
 
     # logger.debug(smartphones_dict)
     df = pd.DataFrame.from_dict(smartphones_dict, orient='index')
-    df.to_csv("smartphones.csv", sep=";")
+    Path("Exports").mkdir(parents=True, exist_ok=True)
+    df.to_csv("Exports/smartphones.csv", sep=";")
 
     print("Runtime : %.2f seconds" % (time.time() - temps_debut))
 
