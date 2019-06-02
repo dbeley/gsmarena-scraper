@@ -127,7 +127,9 @@ def main():
                                 value = "".join(
                                     spec.find_all(text=True, recursive=False)
                                 )
-                                smartphone_dict[type] = value
+                                smartphone_dict[type] = value.strip().replace(
+                                    "\n", ""
+                                )
                                 logger.debug("%s : %s", type, value)
                             except Exception:
                                 pass
