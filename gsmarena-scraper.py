@@ -69,31 +69,45 @@ def main():
                     smartphone_dict["Name"] = name
 
                     if soup_smartphone.select("td", {"class": "nfo"}):
+                        smartphone_dict["Release date"] = soup_smartphone.find(
+                            "span", {"data-spec": "released-hl"}
+                        ).text.strip()
+                        smartphone_dict["Weight"] = soup_smartphone.find(
+                            "span", {"data-spec": "body-hl"}
+                        ).text.strip()
+                        smartphone_dict["OS"] = soup_smartphone.find(
+                            "span", {"data-spec": "os-hl"}
+                        ).text.strip()
+                        smartphone_dict["Storage"] = soup_smartphone.find(
+                            "span", {"data-spec": "storage-hl"}
+                        ).text.strip()
                         smartphone_dict["Fans"] = str(
                             soup_smartphone.find("li", {"class": "help-fans"})
                             .find("strong")
                             .find(text=True)
-                        )
+                        ).strip()
                         smartphone_dict["Popularity"] = str(
                             soup_smartphone.find(
                                 "li", {"class": "help-popularity"}
                             ).find_all(text=True)[2]
-                        )
+                        ).strip()
                         smartphone_dict["Hits"] = str(
                             soup_smartphone.find(
                                 "li", {"class": "help-popularity"}
                             ).find_all(text=True)[4]
-                        )
+                        ).strip()
                         ecran = soup_smartphone.find(
                             "li", {"class": "help-display"}
                         ).find_all(text=True)
                         if ecran:
                             try:
                                 logger.debug("Screen : %s", ecran)
-                                smartphone_dict["Screen_size"] = str(ecran[2])
+                                smartphone_dict["Screen_size"] = str(
+                                    ecran[2]
+                                ).strip()
                                 smartphone_dict["Scree_resolution"] = str(
                                     ecran[3]
-                                )
+                                ).strip()
                             except Exception as e:
                                 logger.debug("Screen : %s", e)
                         ram = soup_smartphone.find(
@@ -103,9 +117,9 @@ def main():
                             try:
                                 logger.debug("RAM : %s", ram)
                                 smartphone_dict["RAM"] = " ".join(
-                                    [ram[i] for i in [3, 4]]
+                                    [ram[i].strip() for i in [3, 4]]
                                 )
-                                smartphone_dict["SOC"] = str(ram[-1])
+                                smartphone_dict["SOC"] = str(ram[-1]).strip()
                             except Exception as e:
                                 logger.debug(f"RAM : %s", e)
                         batterie = soup_smartphone.find(
@@ -115,7 +129,7 @@ def main():
                             try:
                                 logger.debug("Battery : %s", batterie)
                                 smartphone_dict["Battery"] = " ".join(
-                                    [batterie[i] for i in [3, 4]]
+                                    [batterie[i].strip() for i in [3, 4]]
                                 )
                             except Exception as e:
                                 logger.debug("Battery : %s", e)
@@ -123,13 +137,18 @@ def main():
                             "td", {"class": "nfo"}
                         ):
                             try:
-                                type = str(spec["data-spec"])
+                                type = str(spec["data-spec"].strip())
                                 value = "".join(
-                                    spec.find_all(text=True, recursive=False)
+                                    [
+                                        x.strip()
+                                        for x in spec.find_all(
+                                            text=True, recursive=False
+                                        )
+                                    ]
                                 )
-                                smartphone_dict[type] = value.strip().replace(
-                                    "\n", ""
-                                )
+                                smartphone_dict[type] = value.replace(
+                                    "\n", " "
+                                ).replace("\r", " ")
                                 logger.debug("%s : %s", type, value)
                             except Exception:
                                 pass
