@@ -105,7 +105,7 @@ def main():
                                 smartphone_dict["Screen_size"] = str(
                                     ecran[2]
                                 ).strip()
-                                smartphone_dict["Scree_resolution"] = str(
+                                smartphone_dict["Screen_resolution"] = str(
                                     ecran[3]
                                 ).strip()
                             except Exception as e:
