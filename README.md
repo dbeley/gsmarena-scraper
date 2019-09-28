@@ -5,7 +5,7 @@ This script extract the mobile specs from all the phones available in gsmarena.c
 ## Requirements
 
 - requests
-- bs4
+- beautifulsoup4
 - lxml
 - pandas
 
