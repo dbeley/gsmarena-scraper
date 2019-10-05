@@ -108,6 +108,10 @@ def extract_smartphone_infos(smartphone):
     return smartphone_dict
 
 
+def extract_brand_name(brand):
+    return brand["href"].rsplit("-", 1)[0]
+
+
 def extract_brand_infos(brand):
     index_page = 1
     brand = brand["href"].rsplit("-", 1)
@@ -138,7 +142,7 @@ def extract_brand_infos(brand):
             logger.error(
                 "%s : td class=section-body not found", url_brand_page
             )
-            return brand_name, smartphone_list
+            return smartphone_list
 
 
 def main():
@@ -153,17 +157,32 @@ def main():
     soup_index.decompose()
     Path("Exports").mkdir(parents=True, exist_ok=True)
 
-    global_list_smartphones = []
+    # global_list_smartphones = []
+    global_list_smartphones = pd.DataFrame()
     for brand in brands:
-        brand_name, brand_dict = extract_brand_infos(brand)
-        pd.DataFrame.from_records(brand_dict).to_csv(
-            f"Exports/{brand_name}_export.csv", sep=";", index=False
-        )
-        global_list_smartphones += brand_dict
-    # logger.debug(smartphones_dict)
-    pd.DataFrame.from_records(global_list_smartphones).to_csv(
-        "Exports/all_brands_export.csv", sep=";", index=False
-    )
+        brand_name = extract_brand_name(brand)
+        brand_export_file = f"Exports/{brand_name}_export.csv"
+        # If file doesn't already exists, extract smartphone informations.
+        if not Path(brand_export_file).is_file():
+            brand_dict = pd.DataFrame.from_records(extract_brand_infos(brand))
+            brand_dict.to_csv(brand_export_file, sep=";", index=False)
+            global_list_smartphones = pd.concat(
+                [global_list_smartphones, brand_dict], sort=False
+            )
+        # Otherwise, read the file.
+        else:
+            logger.warning(
+                "Skipping %s, %s already exists. Its content will be added to the global export file.",
+                brand_name,
+                brand_export_file,
+            )
+            brand_dict = pd.read_csv(brand_export_file, sep=";")
+            global_list_smartphones = pd.concat(
+                [global_list_smartphones, brand_dict], sort=False
+            )
+    all_export_file = "Exports/all_brands_export.csv"
+    logger.info("Exporting all smartphone to %s.", all_export_file)
+    global_list_smartphones.to_csv(all_export_file, sep=";", index=False)
 
     logger.info("Runtime : %.2f seconds" % (time.time() - temps_debut))
 
