@@ -1,6 +1,6 @@
 # gsmarena_scraper
 
-This script extract the mobile specs from all the phones available in gsmarena.com to a csv file.
+This script extract the mobile specs from all the phones available in gsmarena.com to a csv file (+ one for each brand).
 
 ## Requirements
 
