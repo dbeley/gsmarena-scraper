@@ -11,20 +11,25 @@ from stem.control import Controller
 
 logger = logging.getLogger('gsmarena-scrapper')
 temps_debut = time.time()
-
+ip_counter = 0
 
 def pagevisit_torify(url_):
+    global ip_counter
+    ip_counter += 1
     session = requests.session()
     session.proxies = {}
     session.proxies['http'] = 'socks5h://localhost:9050'
     session.proxies['https'] = 'socks5h://localhost:9050'
     page = session.get(url_)
     ip = session.get('http://checkip.amazonaws.com/').text
-    print(f"crawling url {url_} from ip {ip}")
-    # renew tor ip
-    with Controller.from_port(port = 9051) as controller:
-        controller.authenticate(password="my password")
-        controller.signal(Signal.NEWNYM)
+    # renew tor ip every 20 request
+    if ip_counter >= 20:
+        logger.info(f"crawling url {url_} from ip {ip}")
+        with Controller.from_port(port = 9051) as controller:
+            controller.authenticate(password="my password")
+            controller.signal(Signal.NEWNYM)
+        time.sleep(3)
+        ip_counter = 0
 
     return page
 
