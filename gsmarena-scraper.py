@@ -19,7 +19,8 @@ def pagevisit_torify(url_):
     session.proxies['http'] = 'socks5h://localhost:9050'
     session.proxies['https'] = 'socks5h://localhost:9050'
     page = session.get(url_)
-    print('crawling in progress', url_)
+    ip = session.get('http://checkip.amazonaws.com/').text
+    print(f"crawling url {url_} from ip {ip}")
     # renew tor ip
     with Controller.from_port(port = 9051) as controller:
         controller.authenticate(password="my password")
