@@ -10,6 +10,8 @@ requests = "*"
 bs4 = "*"
 pandas = "*"
 lxml = "*"
+pysocks = "*"
+stem = "*"
 
 [requires]
 python_version = "3.8"
