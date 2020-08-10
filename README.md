@@ -1,8 +1,7 @@
-# gsmarena_scraper
-
-**DEPRECATED** : gsmarena has a much less permissive anti-spam detection now. You will be banned very quickly and the script can't extract more than the first ~100 smartphones (the ban lasts for several days).
+# gsmarena_scraper 
 
 This script extract the mobile specs from all the phones available in gsmarena.com to a csv file (+ one for each brand).
+To avoid spam detection, run with TOR (see below)
 
 ## Requirements
 
@@ -22,6 +21,12 @@ pipenv install
 ```
 python gsmarena_scraper.py
 ```
+
+## Run with tor
+
+1. run `docker run -it -v ${PWD}:/home/gsmarena-tor-scraper ubuntu:18.04 bash`
+2. run `cd home/gsmarena-tor-scraper && sh setup.sh`
+3. run `python gsmarena-scraper.py`
 
 ## Help
 

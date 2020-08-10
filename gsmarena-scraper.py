@@ -5,11 +5,33 @@ import requests
 import pandas as pd
 from bs4 import BeautifulSoup
 from pathlib import Path
+from stem import Signal
+from stem.control import Controller
 
 
-logger = logging.getLogger()
+logger = logging.getLogger('gsmarena-scrapper')
 temps_debut = time.time()
+ip_counter = 0
 
+def pagevisit_torify(url_):
+    global ip_counter
+    ip_counter += 1
+    session = requests.session()
+    session.proxies = {}
+    session.proxies['http'] = 'socks5h://localhost:9050'
+    session.proxies['https'] = 'socks5h://localhost:9050'
+    page = session.get(url_)
+    ip = session.get('http://checkip.amazonaws.com/').text
+    # renew tor ip every 20 request
+    if ip_counter >= 20:
+        logger.info(f"crawling url {url_} from ip {ip}")
+        with Controller.from_port(port = 9051) as controller:
+            controller.authenticate(password="my password")
+            controller.signal(Signal.NEWNYM)
+        time.sleep(3)
+        ip_counter = 0
+
+    return page
 
 def extract_smartphone_infos(smartphone):
     smartphone_dict = dict()
@@ -19,7 +41,7 @@ def extract_smartphone_infos(smartphone):
     smartphone_dict["Link"] = url_smartphone
     smartphone_dict["Image"] = str(smartphone.find("img")["src"])
     soup_smartphone = BeautifulSoup(
-        requests.get(url_smartphone).content, features="lxml"
+        pagevisit_torify(url_smartphone).content, features="lxml"
     )
     smartphone_dict["Name"] = str(
         soup_smartphone.find("h1").find_all(text=True, recursive=False)[0]
@@ -125,7 +147,7 @@ def extract_brand_infos(brand):
         url_brand_page = f"{url_brand_base}-p{index_page}.php"
         logger.debug(url_brand_page)
         index_page = index_page + 1
-        html_doc_page = requests.get(url_brand_page).content
+        html_doc_page = pagevisit_torify(url_brand_page).content
         soup_page = BeautifulSoup(html_doc_page, features="lxml")
         logger.debug(f"Page URL : {url_brand_page}")
 
@@ -150,7 +172,7 @@ def main():
 
     url_index = "https://www.gsmarena.com/makers.php3"
     soup_index = BeautifulSoup(
-        requests.get(url_index).content, features="lxml"
+        pagevisit_torify(url_index).content, features="lxml"
     )
     brands = soup_index.find("div", {"class": "st-text"}).find_all("a")
     # logger.debug(brands)
@@ -199,7 +221,10 @@ def parse_args():
     )
     args = parser.parse_args()
 
-    logging.basicConfig(level=args.loglevel)
+    logger.setLevel(args.loglevel)
+    handler = logging.StreamHandler()
+    handler.setLevel(logging.INFO)
+    logger.addHandler(handler)
     return args
 
 
