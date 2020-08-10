@@ -24,9 +24,8 @@ python gsmarena_scraper.py
 
 ## Run with tor
 
-1. run `docker run -it -v ${PWD}:/home/gsmarena-tor-scraper ubuntu:18.04 bash`
-2. run `cd home/gsmarena-tor-scraper && sh setup.sh`
-3. run `python gsmarena-scraper.py`
+1. run `docker-compose up -d`
+2. run `python gsmarena-scraper.py`
 
 ## Help
 

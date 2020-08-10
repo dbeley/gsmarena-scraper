@@ -8,41 +8,61 @@ from pathlib import Path
 from stem import Signal
 from stem.control import Controller
 
-
-logger = logging.getLogger('gsmarena-scrapper')
+logger = logging.getLogger("gsmarena-scraper")
 temps_debut = time.time()
-ip_counter = 0
 
-def pagevisit_torify(url_):
-    global ip_counter
-    ip_counter += 1
-    session = requests.session()
-    session.proxies = {}
-    session.proxies['http'] = 'socks5h://localhost:9050'
-    session.proxies['https'] = 'socks5h://localhost:9050'
-    page = session.get(url_)
-    ip = session.get('http://checkip.amazonaws.com/').text
-    # renew tor ip every 20 request
-    if ip_counter >= 20:
-        logger.info(f"crawling url {url_} from ip {ip}")
-        with Controller.from_port(port = 9051) as controller:
+
+class tor_network:
+    def __init__(self):
+        self.session = requests.session()
+        self.session.proxies = {
+            "http": "socks5h://localhost:9050",
+            "https": "socks5h://localhost:9050",
+        }
+        self.ntries = 0
+
+    def get_soup(self, url):
+        while True:
+            try:
+                self.ntries += 1
+                soup = BeautifulSoup(
+                    self.session.get(url).content, features="lxml"
+                )
+                if soup.find("title").text.lower() == "too many requests":
+                    logger.info(f"Too many requests.")
+                    self.request_new_ip()
+                elif soup or self.ntries > 30:
+                    self.ntries = 0
+                    break
+                logger.debug(
+                    f"Try {self.ntries} : Problem with soup for {url}."
+                )
+            except Exception as e:
+                logger.debug(f"Can't extract webpage {url}.")
+                self.request_new_ip()
+        return soup
+
+    def request_new_ip(self):
+        logger.info("Requesting new ip address.")
+        with Controller.from_port(port=9051) as controller:
             controller.authenticate(password="my password")
             controller.signal(Signal.NEWNYM)
-        time.sleep(3)
-        ip_counter = 0
+        self.session = requests.session()
+        self.session.proxies = {
+            "http": "socks5h://localhost:9050",
+            "https": "socks5h://localhost:9050",
+        }
+        self.ntries = 0
 
-    return page
 
-def extract_smartphone_infos(smartphone):
+def extract_smartphone_infos(network, smartphone):
     smartphone_dict = dict()
     smartphone = smartphone.find("a")
     url_smartphone = f"https://www.gsmarena.com/{str(smartphone['href'])}"
     logger.debug("url_smartphone : %s", url_smartphone)
     smartphone_dict["Link"] = url_smartphone
     smartphone_dict["Image"] = str(smartphone.find("img")["src"])
-    soup_smartphone = BeautifulSoup(
-        pagevisit_torify(url_smartphone).content, features="lxml"
-    )
+    soup_smartphone = network.get_soup(url_smartphone)
     smartphone_dict["Name"] = str(
         soup_smartphone.find("h1").find_all(text=True, recursive=False)[0]
     )
@@ -126,6 +146,7 @@ def extract_smartphone_infos(smartphone):
                 pass
     else:
         logger.error("%s : td class=nfo not found", smartphone_dict["Name"])
+        network.request_new_ip()
     soup_smartphone.decompose()
     return smartphone_dict
 
@@ -134,7 +155,7 @@ def extract_brand_name(brand):
     return brand["href"].rsplit("-", 1)[0]
 
 
-def extract_brand_infos(brand):
+def extract_brand_infos(network, brand):
     index_page = 1
     brand = brand["href"].rsplit("-", 1)
     brand_name = str(brand[0])
@@ -147,8 +168,7 @@ def extract_brand_infos(brand):
         url_brand_page = f"{url_brand_base}-p{index_page}.php"
         logger.debug(url_brand_page)
         index_page = index_page + 1
-        html_doc_page = pagevisit_torify(url_brand_page).content
-        soup_page = BeautifulSoup(html_doc_page, features="lxml")
+        soup_page = network.get_soup(url_brand_page)
         logger.debug(f"Page URL : {url_brand_page}")
 
         if soup_page.find("div", {"class": "section-body"}).select("li"):
@@ -157,7 +177,7 @@ def extract_brand_infos(brand):
             ).find_all("li")
             soup_page.decompose()
             for smartphone in smartphones:
-                smartphone_dict = extract_smartphone_infos(smartphone)
+                smartphone_dict = extract_smartphone_infos(network, smartphone)
                 smartphone_list.append(smartphone_dict)
         else:
             soup_page.decompose()
@@ -170,23 +190,24 @@ def extract_brand_infos(brand):
 def main():
     args = parse_args()
 
+    network = tor_network()
+
     url_index = "https://www.gsmarena.com/makers.php3"
-    soup_index = BeautifulSoup(
-        pagevisit_torify(url_index).content, features="lxml"
-    )
+    soup_index = network.get_soup(url_index)
+
     brands = soup_index.find("div", {"class": "st-text"}).find_all("a")
-    # logger.debug(brands)
     soup_index.decompose()
     Path("Exports").mkdir(parents=True, exist_ok=True)
 
-    # global_list_smartphones = []
     global_list_smartphones = pd.DataFrame()
     for brand in brands:
         brand_name = extract_brand_name(brand)
         brand_export_file = f"Exports/{brand_name}_export.csv"
         # If file doesn't already exists, extract smartphone informations.
         if not Path(brand_export_file).is_file():
-            brand_dict = pd.DataFrame.from_records(extract_brand_infos(brand))
+            brand_dict = pd.DataFrame.from_records(
+                extract_brand_infos(network, brand)
+            )
             brand_dict.to_csv(brand_export_file, sep=";", index=False)
             global_list_smartphones = pd.concat(
                 [global_list_smartphones, brand_dict], sort=False
