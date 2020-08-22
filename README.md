@@ -11,13 +11,13 @@ To avoid spam detection, run with TOR (see below).
 
 ## Installation
 
-Clone the repository
+Clone the repository:
 ```
 git clone https://github.com/dbeley/gsmarena-scraper
 cd gsmarena-scraper
 ```
 
-Install the python dependencies
+Install the python dependencies:
 ```
 pip install requests beautifulsoup4 lxml pandas pysocks steam
 ```
