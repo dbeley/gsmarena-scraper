@@ -11,20 +11,18 @@ To avoid spam detection, run with TOR (see below).
 
 ## Installation
 
+Clone the repository
 ```
 git clone https://github.com/dbeley/gsmarena-scraper
+cd gsmarena-scraper
 ```
 
-### Python Requirements
+Install the python dependencies
+```
+pip install requests beautifulsoup4 lxml pandas pysocks steam
+```
 
-- requests
-- beautifulsoup4
-- lxml
-- pandas
-- pysocks
-- stem
-
-You can also install the requirements in a virtual environment with pipenv (for running the python script, you will need to use `pipenv run python gsmarena-scraper.py` instead of `python gsmarena-scraper.py`):
+If you prefer, you can also install the requirements in a virtual environment with pipenv (in order to run the python script, you will need to use `pipenv run python gsmarena-scraper.py` instead of `python gsmarena-scraper.py`):
 ```
 pipenv install
 ```
