@@ -6,8 +6,8 @@ To avoid spam detection, run with TOR (see below).
 
 ## Requirements
 
-- docker
-- docker-compose
+- python + pip
+- docker + docker-compose
 
 ## Installation
 
@@ -19,7 +19,7 @@ cd gsmarena-scraper
 
 Install the python dependencies:
 ```
-pip install requests beautifulsoup4 lxml pandas pysocks steam
+pip install requests beautifulsoup4 lxml pandas pysocks stem
 ```
 
 If you prefer, you can also install the requirements in a virtual environment with pipenv (in order to run the python script, you will need to use `pipenv run python gsmarena-scraper.py` instead of `python gsmarena-scraper.py`):
