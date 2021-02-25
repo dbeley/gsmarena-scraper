@@ -1,5 +1,7 @@
 # gsmarena_scraper
 
+**DEPRECATED: even with tor, the rate limiting of gsmarena is too sensitive for the script to complete properly. Use it at your own risk.**
+
 This script extract the mobile specs from all the phones available in gsmarena.com to a csv file (+ one for each brand).
 
 To avoid spam detection, run with TOR (see below).
