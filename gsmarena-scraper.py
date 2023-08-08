@@ -63,11 +63,16 @@ def extract_smartphone_infos(network, smartphone):
     smartphone_dict["Link"] = url_smartphone
     smartphone_dict["Image"] = str(smartphone.find("img")["src"])
     soup_smartphone = network.get_soup(url_smartphone)
-    smartphone_dict["Name"] = str(
-        soup_smartphone.find("h1").find_all(text=True, recursive=False)[0]
-    )
-    logger.info(f"Processing model {smartphone_dict['Name']}")
-
+    h1 = soup_smartphone.find("h1")
+    if h1 is not None: 
+        smartphone_dict["Name"] = str(
+            h1.find_all(text=True, recursive=False)[0]
+        )
+        logger.info(f"Processing model {smartphone_dict['Name']}")
+    else:
+        logger.error("No title in url_smartphone : %s", url_smartphone)
+        # exit 
+        return None
     if soup_smartphone.select("td", {"class": "nfo"}):
         smartphone_dict["Release date"] = soup_smartphone.find(
             "span", {"data-spec": "released-hl"}
@@ -178,7 +183,8 @@ def extract_brand_infos(network, brand):
             soup_page.decompose()
             for smartphone in smartphones:
                 smartphone_dict = extract_smartphone_infos(network, smartphone)
-                smartphone_list.append(smartphone_dict)
+                if smartphone is not None:
+                    smartphone_list.append(smartphone_dict)
         else:
             soup_page.decompose()
             logger.error(
@@ -202,27 +208,28 @@ def main():
     global_list_smartphones = pd.DataFrame()
     for brand in brands:
         brand_name = extract_brand_name(brand)
-        brand_export_file = f"Exports/{brand_name}_export.csv"
-        # If file doesn't already exists, extract smartphone informations.
-        if not Path(brand_export_file).is_file():
-            brand_dict = pd.DataFrame.from_records(
-                extract_brand_infos(network, brand)
-            )
-            brand_dict.to_csv(brand_export_file, sep=";", index=False)
-            global_list_smartphones = pd.concat(
-                [global_list_smartphones, brand_dict], sort=False
-            )
-        # Otherwise, read the file.
-        else:
-            logger.warning(
-                "Skipping %s, %s already exists. Its content will be added to the global export file.",
-                brand_name,
-                brand_export_file,
-            )
-            brand_dict = pd.read_csv(brand_export_file, sep=";")
-            global_list_smartphones = pd.concat(
-                [global_list_smartphones, brand_dict], sort=False
-            )
+        if brand_name.lower() == args.brand_name.lower()+"-phones":
+            brand_export_file = f"Exports/{brand_name}_export.csv"
+            # If file doesn't already exists, extract smartphone informations.
+            if not Path(brand_export_file).is_file():
+                brand_dict = pd.DataFrame.from_records(
+                    extract_brand_infos(network, brand)
+                )
+                brand_dict.to_csv(brand_export_file, sep=";", index=False)
+                global_list_smartphones = pd.concat(
+                    [global_list_smartphones, brand_dict], sort=False
+                )
+            # Otherwise, read the file.
+            else:
+                logger.warning(
+                    "Skipping %s, %s already exists. Its content will be added to the global export file.",
+                    brand_name,
+                    brand_export_file,
+                )
+                brand_dict = pd.read_csv(brand_export_file, sep=";")
+                global_list_smartphones = pd.concat(
+                    [global_list_smartphones, brand_dict], sort=False
+                )
     all_export_file = "Exports/all_brands_export.csv"
     logger.info("Exporting all smartphone to %s.", all_export_file)
     global_list_smartphones.to_csv(all_export_file, sep=";", index=False)
@@ -239,6 +246,12 @@ def parse_args():
         dest="loglevel",
         const=logging.DEBUG,
         default=logging.INFO,
+    )
+    parser.add_argument(
+        "--brand", 
+        help="Select a brand",
+        dest="brand_name",
+        type=str
     )
     args = parser.parse_args()
 

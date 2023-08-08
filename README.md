@@ -54,6 +54,8 @@ usage: gsmarena-scraper.py [-h] [--debug]
 
 Scraper gsmarena.
 
+  --brand brand_name    the selected brand we want to export
+
 optional arguments:
   -h, --help  show this help message and exit
   --debug     Display debugging information
