@@ -53,9 +53,10 @@ class tor_network:
             "https": "socks5h://localhost:9050",
         }
         self.ntries = 0
+        time.sleep(2)
 
 
-def extract_smartphone_infos(network, smartphone):
+def extract_smartphone_infos(network, smartphone, year="2018"):
     smartphone_dict = dict()
     smartphone = smartphone.find("a")
     url_smartphone = f"https://www.gsmarena.com/{str(smartphone['href'])}"
@@ -71,12 +72,15 @@ def extract_smartphone_infos(network, smartphone):
         logger.info(f"Processing model {smartphone_dict['Name']}")
     else:
         logger.error("No title in url_smartphone : %s", url_smartphone)
+        logger.debug(soup_smartphone)
         # exit 
-        return None
+        return None, False
     if soup_smartphone.select("td", {"class": "nfo"}):
         smartphone_dict["Release date"] = soup_smartphone.find(
             "span", {"data-spec": "released-hl"}
         ).text.strip()
+        if not smartphone_dict["Release date"].startswith("Exp. ") and smartphone_dict["Release date"] < "Released " + year:
+            return None, True
         smartphone_dict["Weight"] = soup_smartphone.find(
             "span", {"data-spec": "body-hl"}
         ).text.strip()
@@ -153,7 +157,7 @@ def extract_smartphone_infos(network, smartphone):
         logger.error("%s : td class=nfo not found", smartphone_dict["Name"])
         network.request_new_ip()
     soup_smartphone.decompose()
-    return smartphone_dict
+    return smartphone_dict, False
 
 
 def extract_brand_name(brand):
@@ -182,7 +186,10 @@ def extract_brand_infos(network, brand):
             ).find_all("li")
             soup_page.decompose()
             for smartphone in smartphones:
-                smartphone_dict = extract_smartphone_infos(network, smartphone)
+                smartphone_dict, completed = extract_smartphone_infos(network, smartphone)
+                if completed:
+                    logger.info("we are done")
+                    return smartphone_list
                 if smartphone is not None:
                     smartphone_list.append(smartphone_dict)
         else:
@@ -208,7 +215,7 @@ def main():
     global_list_smartphones = pd.DataFrame()
     for brand in brands:
         brand_name = extract_brand_name(brand)
-        if brand_name.lower() == args.brand_name.lower()+"-phones":
+        if brand_name.lower().replace("-phones", "") in args.brand_names:
             brand_export_file = f"Exports/{brand_name}_export.csv"
             # If file doesn't already exists, extract smartphone informations.
             if not Path(brand_export_file).is_file():
@@ -230,6 +237,8 @@ def main():
                 global_list_smartphones = pd.concat(
                     [global_list_smartphones, brand_dict], sort=False
                 )
+        else:
+            logger.warning("Brand %s not found" % brand_name)
     all_export_file = "Exports/all_brands_export.csv"
     logger.info("Exporting all smartphone to %s.", all_export_file)
     global_list_smartphones.to_csv(all_export_file, sep=";", index=False)
@@ -250,14 +259,14 @@ def parse_args():
     parser.add_argument(
         "--brand", 
         help="Select a brand",
-        dest="brand_name",
-        type=str
+        dest="brand_names",
+        nargs='+'
     )
     args = parser.parse_args()
-
+    args.brand_names = [element.lower() for element in args.brand_names]
     logger.setLevel(args.loglevel)
     handler = logging.StreamHandler()
-    handler.setLevel(logging.INFO)
+    # handler.setLevel(logging.INFO)
     logger.addHandler(handler)
     return args
 

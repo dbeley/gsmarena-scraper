@@ -54,7 +54,7 @@ usage: gsmarena-scraper.py [-h] [--debug]
 
 Scraper gsmarena.
 
-  --brand brand_name    the selected brand we want to export
+  --brand brand1 brand2 brand3    the list of brands we want to export
 
 optional arguments:
   -h, --help  show this help message and exit
@@ -63,4 +63,4 @@ optional arguments:
 
 ## Files exported
 
-The exported files will be placed in a folder named Exports. The `all-brands_exports.csv` will contain the data of all brands.
+The exported files will be placed in a folder named Exports. The `all-brands_exports.csv` will contain the data of all brands. It creates as well a csv file for each brand. If the file already exists for a given brand, the related brand is not processed.
