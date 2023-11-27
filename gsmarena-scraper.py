@@ -43,16 +43,28 @@ class tor_network:
         return soup
 
     def request_new_ip(self):
-        logger.info("Requesting new ip address.")
-        with Controller.from_port(port=9051) as controller:
-            controller.authenticate(password="my password")
-            controller.signal(Signal.NEWNYM)
-        self.session = requests.session()
-        self.session.proxies = {
-            "http": "socks5h://localhost:9050",
-            "https": "socks5h://localhost:9050",
-        }
-        self.ntries = 0
+        logger.info("Requesting new IP address.")
+        for _ in range(3):  # Retry up to 3 times
+            try:
+                with Controller.from_port(port=9051) as controller:
+                    controller.authenticate(password="my password")
+                    controller.signal(Signal.NEWNYM)
+                    self.session = requests.session()
+                    self.session.proxies = {
+                        "http": "socks5h://localhost:9050",
+                        "https": "socks5h://localhost:9050",
+                    }
+
+            # Check if the IP has actually changed
+                new_ip = requests.get("https://api.ipify.org?format=text").text
+                if new_ip != self.last_ip:
+                    self.last_ip = new_ip
+                    logger.info("Successfully acquired new IP address: %s", new_ip)
+                break  # Exit the retry loop if the IP has changed
+            except Exception as e:
+                logger.error("Failed to acquire new IP address: %s", e)
+        # Wait for a while before retrying
+        time.sleep(5)
 
 
 def extract_smartphone_infos(network, smartphone):
